@@ -6,19 +6,19 @@
         <h1>
           {{ oneJoke }}
         </h1>
-        <button @click="copyText('joke')">Copy</button>
+        <button @click="copyToClipboard('joke')">Copy</button>
       </div>
     </div>
     <div class="joke" v-else>
       <div>
-        <h1>
+        <h1 id="setup">
           {{ setup }}
         </h1>
-        <button @click="copyText('setup')">Copy</button>
+        <button @click="copyToClipboard('setup')">Copy</button>
       </div>
-      <div>
+      <div id="delivery">
         <h1>{{ delivery }}</h1>
-        <button @click="copyText('delivery')">Copy</button>
+        <button @click="copyToClipboard('delivery')">Copy</button>
       </div>
     </div>
   </div>
@@ -31,15 +31,35 @@ export default {
     return {};
   },
   methods: {
-      copyText(method) {
-          if (method == "joke") {
-              navigator.clipboard.writeText(this.oneJoke);
-          } else if (method == "setup") {
-              navigator.clipboard.writeText(this.setup);
-          } else {
-              navigator.clipboard.writeText(this.delivery)
-          }
+    copyToClipboard(method) {
+      var textToCopy = "";
+
+      if (method == "joke") {
+        textToCopy = this.oneJoke;
+      } else if (method == "setup") {
+        textToCopy = this.setup;
+      } else {
+        textToCopy = this.delivery;
       }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(textToCopy);
+      } else {
+        let textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((res, rej) => {
+          document.execCommand("copy") ? res() : rej();
+          textArea.remove();
+          alert("Copied to Clipboard");
+        });
+      }
+    },
   },
   props: {
     isLoading: Boolean,
@@ -74,6 +94,11 @@ export default {
   margin-left: auto;
   margin-top: 0.75rem;
   height: 2rem;
+  width: 3rem;
+}
+
+button:hover {
+  cursor: pointer;
 }
 
 .joke {
